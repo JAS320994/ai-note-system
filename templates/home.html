@@ -1,0 +1,407 @@
+<!-- converter/templates/home.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Studio - 智能笔记</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html, body { height: 100%; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+        .nice-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .nice-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        textarea:focus { outline: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div class="flex h-screen overflow-hidden">
+
+    <!-- ============ 左侧侧边栏 ============ -->
+    <aside class="w-[88px] shrink-0 bg-white border-r border-slate-100 flex flex-col items-center py-6">
+        <!-- Logo -->
+        <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-200">
+            λ
+        </div>
+
+        <!-- 导航 -->
+        <nav class="mt-10 flex flex-col items-center gap-3 flex-1">
+            <button type="button" data-page="workspace"
+                class="nav-btn group w-12 h-12 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>
+                </svg>
+            </button>
+
+            <button type="button" data-page="templates"
+                class="nav-btn group w-12 h-12 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                </svg>
+            </button>
+
+            <button type="button" data-page="info"
+                class="nav-btn group w-12 h-12 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="M12 11v5"/>
+                    <path d="M12 8h.01"/>
+                </svg>
+            </button>
+        </nav>
+    </aside>
+
+    <!-- ============ 右侧主体 ============ -->
+    <main class="flex-1 flex flex-col min-w-0">
+
+        <!-- 顶部栏 -->
+        <header class="h-16 shrink-0 bg-white border-b border-slate-100 flex items-center justify-between px-8">
+            <div class="flex items-center gap-2 text-slate-400">
+                <span>AI Studio</span>
+                <span>/</span>
+                <span id="page-title" class="text-slate-700 font-medium">工作台</span>
+            </div>
+            <div class="flex items-center gap-5">
+                <div class="flex items-center gap-2 text-sm text-slate-500">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    本地页面已就绪
+                </div>
+                <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">
+                    AI
+                </div>
+            </div>
+        </header>
+
+        <!-- ========== 页面 1：工作台 ========== -->
+        <section id="page-workspace" class="page flex-1 overflow-y-auto nice-scroll px-12 py-10">
+            <div class="max-w-4xl mx-auto">
+
+                <!-- 标题区 -->
+                <div class="text-center mb-10">
+                    <p class="text-indigo-500 tracking-[0.25em] text-xs font-semibold mb-3">
+                        YOUR AI LEARNING ASSISTANT
+                    </p>
+                    <h1 class="text-4xl font-bold text-indigo-700 mb-4">
+                        你好，今天想整理什么？
+                    </h1>
+                    <p class="text-slate-500 text-lg">
+                        上传音频、图片或输入文本，AI 为你生成清晰、有条理的学习笔记。
+                    </p>
+                </div>
+
+                <!-- 表单 -->
+                <form id="note-form" method="post" enctype="multipart/form-data"
+                      action="{% url 'generate' %}" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    {% csrf_token %}
+
+                    <!-- 标签 + 字数 -->
+                    <div class="flex items-center justify-between mb-3">
+                        <label for="user-input" class="text-slate-500 text-sm font-medium">
+                            输入课堂内容
+                        </label>
+                        <span id="char-count" class="text-xs text-slate-400">0 字</span>
+                    </div>
+
+                    <!-- 文本输入框 -->
+                    <textarea id="user-input" name="user_input" rows="10"
+                        placeholder="请在此处粘贴你的内容，或从「模板中心」选择一个模板开始…"
+                        class="w-full resize-none text-slate-700 text-base leading-7 placeholder:text-slate-300"></textarea>
+
+                    <!-- 底部按钮区 -->
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <!-- 上传图片：隐藏 input + label -->
+                            <input type="file" id="image-input" name="image" accept="image/*" hidden>
+                            <label for="image-input"
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 text-slate-600 text-sm hover:bg-slate-50 cursor-pointer transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                    <circle cx="9" cy="9" r="2"/>
+                                    <path d="m21 15-3.5-3.5L9 20"/>
+                                </svg>
+                                上传图片
+                            </label>
+
+                            <!-- 上传录音 -->
+                            <input type="file" id="audio-input" name="audio" accept="audio/*" hidden>
+                            <label for="audio-input"
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 text-slate-600 text-sm hover:bg-slate-50 cursor-pointer transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                     stroke-linejoin="round">
+                                    <path d="M9 18V5l12-2v13"/>
+                                    <circle cx="6" cy="18" r="3"/>
+                                    <circle cx="18" cy="16" r="3"/>
+                                </svg>
+                                上传录音
+                            </label>
+                        </div>
+
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition shadow-md">
+                            生成笔记
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M5 12h14"/>
+                                <path d="m12 5 7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- 附件卡片容器 -->
+                <div id="attachment-wrap" class="mt-5 hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 id="attachment-title" class="font-semibold text-slate-700">附件</h3>
+                            <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-medium">
+                                已添加
+                            </span>
+                        </div>
+                        <div id="attachments" class="space-y-3"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ========== 页面 2：模板中心 ========== -->
+        <section id="page-templates" class="page hidden flex-1 overflow-y-auto nice-scroll px-12 py-10">
+            <div class="max-w-5xl mx-auto">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-slate-900 mb-2">模板中心</h1>
+                    <p class="text-slate-500">选择一个整理模板，快速开始你的下一份笔记。</p>
+                </div>
+
+                <!-- ★ 关键：grid-cols-2 强制两列，不管屏幕多宽 -->
+                <div id="template-grid" class="grid grid-cols-2 gap-5">
+                    <!-- 卡片由 JS 渲染 -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+/* ===================== 模板数据 ===================== */
+const TEMPLATES = [
+    {
+        title: '课堂笔记',
+        desc: '提炼课程主题、核心概念、知识结构与课后重点。',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+        prompt: '请将以下内容整理为课堂笔记，包含课程主题、核心知识点、概念解释、知识结构、重点与课后思考。\n\n【请在此处粘贴你的内容】'
+    },
+    {
+        title: '会议纪要',
+        desc: '整理讨论内容、关键决策、待办事项与负责人。',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
+        prompt: '请将以下内容整理为会议纪要，包含会议主题、参会人员、讨论内容、关键决策、待办事项、负责人与截止时间。\n\n【请在此处粘贴你的内容】'
+    },
+    {
+        title: '课程复习提纲',
+        desc: '归纳章节重点、易错知识点与考前复习清单。',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m8 6 4-4 4 4"/><path d="m8 18 4 4 4-4"/></svg>`,
+        prompt: '请将以下内容整理为课程复习提纲，归纳章节重点、易错知识点、核心公式/概念，并给出考前复习清单。\n\n【请在此处粘贴你的内容】'
+    },
+    {
+        title: '读书笔记',
+        desc: '整理书籍观点、重要摘录、个人思考与行动启发。',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8"/><path d="M8 11h6"/></svg>`,
+        prompt: '请将以下内容整理为读书笔记，包含书籍信息、核心观点、重要摘录、个人思考与行动启发。\n\n【请在此处粘贴你的内容】'
+    },
+    {
+        title: '文献阅读',
+        desc: '梳理研究问题、方法、结论、创新点与局限。',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`,
+        prompt: '请将以下内容整理为文献阅读笔记，包含研究问题、研究方法、主要结论、创新点与局限、个人评述。\n\n【请在此处粘贴你的内容】'
+    },
+    {
+        title: '自由整理',
+        desc: '不限定格式，根据你的输入灵活组织内容。',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>`,
+        prompt: '请根据以下内容自由整理为结构清晰的笔记，不限定格式，要求重点突出、条理分明。\n\n【请在此处粘贴你的内容】'
+    }
+];
+
+/* ===================== SPA 页面切换 ===================== */
+const PAGE_TITLES = { workspace: '工作台', templates: '模板中心', info: '信息' };
+
+function switchPage(page) {
+    // 1. 隐藏所有页面
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    // 2. 显示目标页面
+    const target = document.getElementById('page-' + page);
+    if (target) target.classList.remove('hidden');
+
+    // 3. 高亮当前导航按钮
+    document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.remove('bg-indigo-100', 'text-indigo-600');
+        b.classList.add('text-slate-400');
+    });
+    const activeBtn = document.querySelector(`.nav-btn[data-page="${page}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('bg-indigo-100', 'text-indigo-600');
+        activeBtn.classList.remove('text-slate-400');
+    }
+
+    // 4. 更新顶部标题
+    const titleEl = document.getElementById('page-title');
+    if (titleEl) titleEl.textContent = PAGE_TITLES[page] || '工作台';
+}
+
+// 给所有侧边栏按钮绑定点击事件
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchPage(btn.dataset.page));
+});
+
+/* ===================== 渲染模板卡片 ===================== */
+const templateGrid = document.getElementById('template-grid');
+TEMPLATES.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'group bg-white rounded-2xl border border-slate-100 p-6 cursor-pointer hover:border-indigo-300 hover:shadow-md transition';
+    card.innerHTML = `
+        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center mb-4 group-hover:bg-indigo-100 transition">
+            ${t.icon}
+        </div>
+        <h3 class="text-lg font-semibold text-slate-800 mb-1.5">${t.title}</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">${t.desc}</p>
+    `;
+    // ★ 点击卡片：把 prompt 填入输入框 → 切回工作台 → 聚焦输入框
+    card.addEventListener('click', () => {
+        const ta = document.getElementById('user-input');
+        ta.value = t.prompt;
+        updateCharCount();
+        switchPage('workspace');
+        ta.focus();
+    });
+    templateGrid.appendChild(card);
+});
+
+/* ===================== 字数统计 ===================== */
+const userInput = document.getElementById('user-input');
+const charCount = document.getElementById('char-count');
+function updateCharCount() {
+    charCount.textContent = (userInput.value.length) + ' 字';
+}
+userInput.addEventListener('input', updateCharCount);
+
+/* ===================== 附件卡片逻辑 ===================== */
+const imageInput = document.getElementById('image-input');
+const audioInput = document.getElementById('audio-input');
+const attachments = document.getElementById('attachments');
+const attachmentWrap = document.getElementById('attachment-wrap');
+const attachmentTitle = document.getElementById('attachment-title');
+
+// 格式化文件大小
+function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// 控制附件区域的显示/隐藏 + 标题
+function refreshAttachmentWrap() {
+    const hasChildren = attachments.children.length > 0;
+    attachmentWrap.classList.toggle('hidden', !hasChildren);
+    if (hasChildren) {
+        const types = Array.from(attachments.children).map(c => c.dataset.type);
+        const label = types.includes('image') && types.includes('audio')
+            ? '图片 / 录音附件'
+            : types.includes('image') ? '图片附件' : '录音附件';
+        attachmentTitle.textContent = label;
+    }
+}
+
+// 移除附件：删掉卡片 + 清空对应 input
+function removeAttachment(type) {
+    const card = attachments.querySelector(`[data-type="${type}"]`);
+    if (card) card.remove();
+    if (type === 'image') imageInput.value = '';
+    if (type === 'audio') audioInput.value = '';
+    refreshAttachmentWrap();
+}
+
+// 渲染单个附件卡片
+function renderAttachment(file, type) {
+    // 同类型只保留最新一份
+    const old = attachments.querySelector(`[data-type="${type}"]`);
+    if (old) old.remove();
+
+    const card = document.createElement('div');
+    card.dataset.type = type;
+    card.className = 'flex items-center gap-4 p-3 rounded-xl bg-slate-50 border border-slate-100';
+
+    // 图片用缩略图，音频用图标
+    let mediaHtml;
+    if (type === 'image') {
+        mediaHtml = `<img class="attach-thumb w-14 h-14 rounded-lg object-cover bg-white border border-slate-200" alt="preview">`;
+    } else {
+        mediaHtml = `
+            <div class="w-14 h-14 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                </svg>
+            </div>`;
+    }
+
+    card.innerHTML = `
+        ${mediaHtml}
+        <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-slate-700 truncate">${file.name}</div>
+            <div class="text-xs text-slate-400 mt-0.5">${formatSize(file.size)}</div>
+            <div class="text-xs text-emerald-500 mt-1 flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                已添加到本次任务
+            </div>
+        </div>
+        <button type="button" class="attach-remove w-7 h-7 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition" title="移除">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    `;
+
+    // 绑定 × 按钮
+    card.querySelector('.attach-remove').addEventListener('click', () => removeAttachment(type));
+    attachments.appendChild(card);
+
+    // 图片用 FileReader 生成缩略图
+    if (type === 'image') {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const img = card.querySelector('.attach-thumb');
+            if (img) img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    refreshAttachmentWrap();
+}
+
+// 监听文件选择
+imageInput.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) renderAttachment(f, 'image');
+});
+audioInput.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) renderAttachment(f, 'audio');
+});
+
+/* ===================== 初始化 ===================== */
+switchPage('workspace');
+updateCharCount();
+</script>
+
+</body>
+</html>
